@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# This is the scipt that you want websocketd to execute. 
+# This is the script that you want websocketd to execute. 
 #
 # Example: ~/websocketd --port=8080 ./tailfsyslog.sh
 #
