@@ -12,8 +12,6 @@ Uses the following awesome software:
 * tailf
 * [websocketd](https://github.com/joewalnes/websocketd)
 
-**NOTE:** *Tested on Ubuntu 14.04 and 15.04. Your results may vary.*
-
 ## Installation
 
 * Download and extract websocketd from here: https://github.com/joewalnes/websocketd/releases
@@ -22,3 +20,5 @@ Uses the following awesome software:
 * `sudo ./iptablesetup.sh`
 * `~/websocketd --port=8080 ./tailfsyslog.sh`
 * `xdg-open index.html`
+
+**NOTE:** *Tested on Ubuntu 14.04 and 15.04. Your results may vary.*
