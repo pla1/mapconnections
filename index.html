@@ -59,7 +59,8 @@
       }
       document.head.appendChild(script);
     } else {
-      console.log("Geo data found in local storage for IP: '" + ip  + "'");
+      data = JSON.parse(data);
+      console.log("Geo data found in local storage for IP: '" + ip  + "' JSON:" + JSON.stringify(data));
       createMarker(data, direction);
     }
   }
