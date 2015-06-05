@@ -17,8 +17,8 @@ Uses the following awesome software:
 ## Installation
 
 * Download and extract websocketd from here: https://github.com/joewalnes/websocketd/releases
-* git clone git@github.com:pla1/mapconnections.git
-* cd mapconnections
-* sudo ./iptablesetup.sh
-* ~/websocketd --port=8080 ./tailfsyslog.sh
-* xdg-open index.html
+* `git clone git@github.com:pla1/mapconnections.git`
+* `cd mapconnections`
+* `sudo ./iptablesetup.sh`
+* `~/websocketd --port=8080 ./tailfsyslog.sh`
+* `xdg-open index.html`
