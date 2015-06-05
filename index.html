@@ -5,40 +5,63 @@
   <script src="https://maps.googleapis.com/maps/api/js"></script>
   <script>
   var ws = new WebSocket('ws://localhost:8080/');
-  var excludeIpRegex = /(^127\.0\.0\.1)|(^10\.)|(^224\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)/g;
-  var extractIpRegex = /SRC=(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) DST=(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/g;
+  var excludeIpRegex = /(^127\.0\.0\.1)|(^10\.)|(^224\.)|(^255\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)/;
+  var extractIpRegex = /SRC=(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) DST=(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/;
+  var greenMarkerImage = 'https://maps.gstatic.com/mapfiles/ridefinder-images/mm_20_green.png';
+  var redMarkerImage ='https://maps.gstatic.com/mapfiles/ridefinder-images/mm_20_red.png';
 
   var map;
   function log(msg) {
-    var logElement = document.getElementById('log');
     console.log(msg);
     var match = extractIpRegex.exec(msg);
-    if (match != null) {
-      //  logElement.textContent = '\n' + logElement.textContent;
-      for (var i = 1 ; i < match.length;i++) {
-        //logElement.textContent = ' ' + match[i] + logElement.textContent;
-        geoip(match[i]);
-      }
+    if (match != null && match.length==3) {
+      geoip(match[1],'source');
+      geoip(match[2],'destination');
     }
   }
-  function geoipCallback(data) {
-    console.log(JSON.stringify(data));
+  function createMarker(data, direction) {
     var point = new google.maps.LatLng(data.latitude, data.longitude);
+    var icon = greenMarkerImage;
+    if (direction == 'source') {
+      icon = redMarkerImage;
+    }
     var marker = new google.maps.Marker({
       position: point,
       title: data.country + ' ' + data.isp + ' ' + data.ip,
       animation: google.maps.Animation.DROP,
+      icon: icon,
       map: map
     });
   }
-  function geoip(ip) {
+  function geoipCallbackSource(data) {
+    console.log(JSON.stringify(data));
+    createMarker(data, 'source');
+    localStorage.setItem(data.ip, JSON.stringify(data));
+  }
+  function geoipCallbackDestination(data) {
+    console.log(JSON.stringify(data));
+    createMarker(data, 'destination');
+    localStorage.setItem(data.ip, JSON.stringify(data));
+  }
+  function geoip(ip, direction) {
     if (excludeIpRegex.test(ip)) {
-      console.log("Exclude IP: " + ip);
+      console.log("Exclude IP: '" + ip + "'");
       return;
     }
-    var script = document.createElement('script');
-    script.src = 'http://www.telize.com/geoip/'+ip+'?callback=geoipCallback';
-    document.head.appendChild(script);
+    var data = localStorage.getItem(ip);
+    if (data==null) {
+      console.log("Requesting geo from telize.com for IP: '" + ip + "'");
+      var script = document.createElement('script');
+      if (direction == 'source') {
+        script.src = 'http://www.telize.com/geoip/'+ip+'?callback=geoipCallbackSource';
+      } else {
+        script.src = 'http://www.telize.com/geoip/'+ip+'?callback=geoipCallbackDestination';
+      }
+      document.head.appendChild(script);
+    } else {
+      console.log("Geo data found in local storage for IP: '" + ip  + "'");
+      createMarker(data, direction);
+    }
   }
 
   ws.onopen = function() {
