@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<pre id="log"></pre>
+<script>
+
+var logElement = document.getElementById('log');
+var ws = new WebSocket('ws://localhost:8080/');
+
+function log(msg) {
+  console.log(msg);
+  var regexp = /SRC=(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) DST=(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/g;
+  var match = regexp.exec(msg);
+  if (match != null) {
+    logElement.textContent = '\n' + logElement.textContent;
+    for (var i = 1 ; i < match.length;i++) {
+      logElement.textContent = ' ' + match[i] + logElement.textContent;
+    }
+  }
+}
+
+ws.onopen = function() {
+  console.log("Websocket opened.");
+};
+
+ws.onclose = function() {
+  console.log("Websocket closed.");
+};
+
+ws.onmessage = function(event) {
+  log(event.data);
+};
+
+</script>
