@@ -26,13 +26,14 @@
     var point = new google.maps.LatLng(data.latitude, data.longitude);
     var marker = new google.maps.Marker({
       position: point,
-      title: data.country + ' ' + data.isp,
+      title: data.country + ' ' + data.isp + ' ' + data.ip,
+      animation: google.maps.Animation.DROP,
       map: map
     });
   }
   function geoip(ip) {
     if (excludeIpRegex.test(ip)) {
-      console.log("Private IP: " + ip);
+      console.log("Exclude IP: " + ip);
       return;
     }
     var script = document.createElement('script');
