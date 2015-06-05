@@ -1,10 +1,12 @@
 #!/bin/bash
 #
-# PING all the United States for demoing Web Connections app. 
+# PING all the United States for demoing Web Connections app.
 #
 ping -c 1 -W 1 AK.gov
 ping -c 1 -W 1 AL.gov
+ping -c 1 -W 1 www.legislature.state.al.us
 ping -c 1 -W 1 AZ.gov
+ping -c 1 -W 1 arizona.gov
 ping -c 1 -W 1 AR.gov
 ping -c 1 -W 1 CA.gov
 ping -c 1 -W 1 CO.gov
@@ -12,6 +14,7 @@ ping -c 1 -W 1 CT.gov
 ping -c 1 -W 1 DE.gov
 ping -c 1 -W 1 FL.gov
 ping -c 1 -W 1 GA.gov
+ping -c 1 -W 1 atlantaga.gov
 ping -c 1 -W 1 HI.gov
 ping -c 1 -W 1 ID.gov
 ping -c 1 -W 1 IL.gov
@@ -24,28 +27,37 @@ ping -c 1 -W 1 ME.gov
 ping -c 1 -W 1 MD.gov
 ping -c 1 -W 1 MA.gov
 ping -c 1 -W 1 MI.gov
+ping -c 1 -W 1 www.lansingmi.gov
 ping -c 1 -W 1 MN.gov
 ping -c 1 -W 1 MS.gov
+ping -c 1 -W 1 billstatus.ls.state.ms.us
 ping -c 1 -W 1 MO.gov
+ping -c 1 -W 1 www.moga.mo.gov
 ping -c 1 -W 1 MT.gov
 ping -c 1 -W 1 NE.gov
+ping -c 1 -W 1 lincoln.ne.gov
 ping -c 1 -W 1 NV.gov
 ping -c 1 -W 1 NH.gov
 ping -c 1 -W 1 NJ.gov
 ping -c 1 -W 1 NM.gov
+ping -c 1 -W 1 newmexico.gov
 ping -c 1 -W 1 NY.gov
+ping -c 1 -W 1 albanyny.gov
 ping -c 1 -W 1 NC.gov
 ping -c 1 -W 1 ND.gov
 ping -c 1 -W 1 OH.gov
 ping -c 1 -W 1 OK.gov
 ping -c 1 -W 1 OR.gov
+ping -c 1 -W 1 oregon.com
 ping -c 1 -W 1 PA.gov
 ping -c 1 -W 1 RI.gov
 ping -c 1 -W 1 SC.gov
 ping -c 1 -W 1 SD.gov
 ping -c 1 -W 1 TN.gov
 ping -c 1 -W 1 TX.gov
+ping -c 1 -W 1 austintexas.gov
 ping -c 1 -W 1 UT.gov
+ping -c 1 -W 1 utah.gov
 ping -c 1 -W 1 VT.gov
 ping -c 1 -W 1 VA.gov
 ping -c 1 -W 1 WA.gov
