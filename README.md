@@ -13,3 +13,12 @@ Uses the following awesome software:
 * [websocketd](https://github.com/joewalnes/websocketd)
 
 **NOTE:** *Tested on Ubuntu 14.04 and 15.04. Your results may vary.*
+
+## Installation
+
+* Download and extract websocketd from here: https://github.com/joewalnes/websocketd/releases
+* git clone git@github.com:pla1/mapconnections.git
+* cd mapconnections
+* sudo ./iptablesetup.sh
+* ~/websocketd --port=8080 ./tailfsyslog.sh
+* xdg-open index.html
