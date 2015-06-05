@@ -11,3 +11,5 @@ Uses the following awesome software:
 * [iptables](http://en.wikipedia.org/wiki/Iptables)
 * tailf
 * [websocketd](https://github.com/joewalnes/websocketd)
+
+**NOTE:** *Tested on Ubuntu 14.04 and 15.04. Your results may vary.*
