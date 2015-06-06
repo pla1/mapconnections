@@ -22,6 +22,6 @@ Uses the following awesome software:
 
 **NOTE:** *Tested on Ubuntu 14.04 and 15.04. Your results may vary.*
 
-<sup>1</sup>If mapping for a Cisco ASA substitute tailfsyslog.sh with ciscoasasyslog.sh.
+<sup>1</sup>If mapping for a Cisco ASA substitute `tailfsyslog.sh` with `ciscoasasyslog.sh`.
 
 ![Animated GIF demo of Map Connections](http://i.imgur.com/PMKc9xr.gif)
