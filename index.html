@@ -7,16 +7,36 @@
   var ws = new WebSocket('ws://localhost:8080/');
   var excludeIpRegex = /(^127\.0\.0\.1)|(^10\.)|(^224\.)|(^255\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)/;
   var extractIpRegex = /SRC=(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) DST=(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/;
+  var extractIpRegexCiscoASA = /Built (inbound|outbound) .* outside:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/.* inside:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/.*/;
+  var extractIpRegexCiscoASADeny = /Deny (tcp|udp) src outside:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/.* inside:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/.*/;
   var greenMarkerImage = 'https://maps.gstatic.com/mapfiles/ridefinder-images/mm_20_green.png';
   var redMarkerImage ='https://maps.gstatic.com/mapfiles/ridefinder-images/mm_20_red.png';
-
+  var yellowMarkerImage = 'https://maps.gstatic.com/mapfiles/ridefinder-images/mm_20_yellow.png';
   var map;
+
   function log(msg) {
     console.log(msg);
     var match = extractIpRegex.exec(msg);
     if (match != null && match.length==3) {
       geoip(match[1],'source');
       geoip(match[2],'destination');
+      return; 
+    }
+    match = extractIpRegexCiscoASA.exec(msg);
+    if (match != null && match.length==4) {
+      if (match[1] == 'inbound') {
+        geoip(match[2],'source');
+        geoip(match[3],'destination');
+      } else {
+        geoip(match[3],'source');
+        geoip(match[2],'destination');
+      }
+      return;
+    }
+    match = extractIpRegexCiscoASADeny.exec(msg);
+    if (match != null && match.length==4) {
+      geoip(match[2],'deny');
+      return;
     }
   }
   function createMarker(data, direction) {
@@ -24,6 +44,9 @@
     var icon = greenMarkerImage;
     if (direction == 'source') {
       icon = redMarkerImage;
+    }
+    if (direction == 'deny') {
+      icon = yellowMarkerImage;
     }
     var marker = new google.maps.Marker({
       position: point,
@@ -43,6 +66,11 @@
     createMarker(data, 'destination');
     localStorage.setItem(data.ip, JSON.stringify(data));
   }
+  function geoipCallbackDeny(data) {
+    console.log(JSON.stringify(data));
+    createMarker(data, 'deny');
+    localStorage.setItem(data.ip, JSON.stringify(data));
+  }
   function geoip(ip, direction) {
     if (excludeIpRegex.test(ip)) {
       console.log("Exclude IP: '" + ip + "'");
@@ -54,8 +82,12 @@
       var script = document.createElement('script');
       if (direction == 'source') {
         script.src = 'http://www.telize.com/geoip/'+ip+'?callback=geoipCallbackSource';
-      } else {
+      } 
+      if (direction == 'destination') {
         script.src = 'http://www.telize.com/geoip/'+ip+'?callback=geoipCallbackDestination';
+      }
+      if (direction == 'deny') {
+        script.src = 'http://www.telize.com/geoip/'+ip+'?callback=geoipCallbackDeny';
       }
       document.head.appendChild(script);
     } else {
@@ -99,7 +131,6 @@
 
 </head>
 <body>
-  <pre id="log"></pre>
   <div id="map-canvas"></div>
 </body>
 </html>
