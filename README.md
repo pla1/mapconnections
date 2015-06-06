@@ -13,7 +13,7 @@ Uses the following awesome software:
 ## Installation
 
 * Download and extract websocketd from here: https://github.com/joewalnes/websocketd/releases
-* `git clone git@github.com:pla1/mapconnections.git`
+* `git clone https://github.com/pla1/mapconnections`
 * `cd mapconnections`
 * `sudo ./iptablesetup.sh`
 * `~/websocketd --port=8080 ./tailfsyslog.sh`
