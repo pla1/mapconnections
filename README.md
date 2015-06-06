@@ -20,3 +20,5 @@ Uses the following awesome software:
 * `xdg-open index.html`
 
 **NOTE:** *Tested on Ubuntu 14.04 and 15.04. Your results may vary.*
+
+![Animated GIF demo of Map Connections](http://i.imgur.com/PMKc9xr.gif)
