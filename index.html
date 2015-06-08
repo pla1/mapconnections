@@ -13,6 +13,8 @@
   var redMarkerImage ='https://maps.gstatic.com/mapfiles/ridefinder-images/mm_20_red.png';
   var yellowMarkerImage = 'https://maps.gstatic.com/mapfiles/ridefinder-images/mm_20_yellow.png';
   var map;
+  var markers = [];
+  var MAXIMUM_MARKERS = 1000;
 
   function log(msg) {
     console.log(msg);
@@ -20,7 +22,7 @@
     if (match != null && match.length==3) {
       geoip(match[1],'source');
       geoip(match[2],'destination');
-      return; 
+      return;
     }
     match = extractIpRegexCiscoASA.exec(msg);
     if (match != null && match.length==4) {
@@ -55,19 +57,27 @@
       icon: icon,
       map: map
     });
+    console.log(markers.length + " markers.");
+    if (markers.length > MAXIMUM_MARKERS)  {
+      var removedMarkers = markers.splice(0,1);
+      if (removedMarkers.length > 0) {
+        removedMarkers[0].setMap(null);
+      }
+    }
+    markers.push(marker);
   }
   function geoipCallbackSource(data) {
-    console.log(JSON.stringify(data));
+    console.log("geoipCallbackSource data from telize.com:" + JSON.stringify(data));
     createMarker(data, 'source');
     localStorage.setItem(data.ip, JSON.stringify(data));
   }
   function geoipCallbackDestination(data) {
-    console.log(JSON.stringify(data));
+    console.log("geoipCallbackDestination data from telize.com: " + JSON.stringify(data));
     createMarker(data, 'destination');
     localStorage.setItem(data.ip, JSON.stringify(data));
   }
   function geoipCallbackDeny(data) {
-    console.log(JSON.stringify(data));
+    console.log("geoipCallbackDeny data from telize.com: " + JSON.stringify(data));
     createMarker(data, 'deny');
     localStorage.setItem(data.ip, JSON.stringify(data));
   }
@@ -82,7 +92,7 @@
       var script = document.createElement('script');
       if (direction == 'source') {
         script.src = 'http://www.telize.com/geoip/'+ip+'?callback=geoipCallbackSource';
-      } 
+      }
       if (direction == 'destination') {
         script.src = 'http://www.telize.com/geoip/'+ip+'?callback=geoipCallbackDestination';
       }
