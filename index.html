@@ -29,6 +29,7 @@
   dbOpen.onsuccess = function(e) {
     console.log("DB opened. ");
     db = e.target.result;
+    getRowCount();
   }
   dbOpen.onerror = function(e) {
     console.log("DB open error. " + e);
@@ -96,6 +97,15 @@
     }
 
   }
+  function getRowCount() {
+    var transaction = db.transaction(["geo"],"readonly");
+    var store = transaction.objectStore("geo");
+    var index = store.index("geoIndex");
+    var request = index.count();
+    request.onsuccess = function(e) {
+      console.log("Row count: " + request.result);
+    }
+  }
   function getGeo(ip, direction) {
     if (excludeIpRegex.test(ip)) {
       console.log("Exclude IP: '" + ip + "'");
@@ -106,7 +116,7 @@
     var index = store.index("geoIndex");
     var request = index.get(ip);
     request.onsuccess = function(e) {
-      console.log("get successful " + ip);
+      console.log("get successful for IP: " + ip);
       if (request.result) {
         console.log("From db: " + JSON.stringify(request.result));
         createMarker(request.result, direction);
