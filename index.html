@@ -5,7 +5,7 @@
   <script src="https://maps.googleapis.com/maps/api/js"></script>
   <script>
   var ws = new WebSocket('ws://localhost:8080/');
-  var excludeIpRegex = /(^127\.0\.0\.1)|(^10\.)|(^224\.)|(^255\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)/;
+  var excludeIpRegex = /(^127\.0\.0\.1)|(^127\.0\.1\.1)|(^10\.)|(^224\.)|(^255\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)/;
   var extractIpRegex = /SRC=(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) DST=(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/;
   var extractIpRegexCiscoASA = /Built (inbound|outbound) .* outside:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/.* inside:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/.*/;
   var extractIpRegexCiscoASADeny = /Deny (tcp|udp) src outside:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/.* inside:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/.*/;
@@ -15,29 +15,46 @@
   var map;
   var markers = [];
   var MAXIMUM_MARKERS = 1000;
-
+  var db;
+  var dbOpen = indexedDB.open('mapconnections',7);
+  dbOpen.onupgradeneeded = function(e) {
+    console.log("Upgrading...");
+    thisDb = e.target.result;
+    if(thisDb.objectStoreNames.contains("geo")) {
+      thisDb.deleteObjectStore("geo");
+    }
+    var objectStore = thisDb.createObjectStore("geo");
+    objectStore.createIndex("geoIndex","ip",{unique:true});
+  }
+  dbOpen.onsuccess = function(e) {
+    console.log("DB opened. ");
+    db = e.target.result;
+  }
+  dbOpen.onerror = function(e) {
+    console.log("DB open error. " + e);
+  }
   function log(msg) {
     console.log(msg);
     var match = extractIpRegex.exec(msg);
     if (match != null && match.length==3) {
-      geoip(match[1],'source');
-      geoip(match[2],'destination');
+      getGeo(match[1],'source');
+      getGeo(match[2],'destination');
       return;
     }
     match = extractIpRegexCiscoASA.exec(msg);
     if (match != null && match.length==4) {
       if (match[1] == 'inbound') {
-        geoip(match[2],'source');
-        geoip(match[3],'destination');
+        getGeo(match[2],'source');
+        getGeo(match[3],'destination');
       } else {
-        geoip(match[3],'source');
-        geoip(match[2],'destination');
+        getGeo(match[3],'source');
+        getGeo(match[2],'destination');
       }
       return;
     }
     match = extractIpRegexCiscoASADeny.exec(msg);
     if (match != null && match.length==4) {
-      geoip(match[2],'deny');
+      getGeo(match[2],'deny');
       return;
     }
   }
@@ -66,45 +83,67 @@
     }
     markers.push(marker);
   }
-  function geoipCallbackSource(data) {
-    console.log("geoipCallbackSource data from telize.com:" + JSON.stringify(data));
-    createMarker(data, 'source');
-    localStorage.setItem(data.ip, JSON.stringify(data));
+  function storeGeo(data) {
+    console.log("Store GEO: " + JSON.stringify(data));
+    var transaction = db.transaction(["geo"],"readwrite");
+    var store = transaction.objectStore("geo");
+    var request = store.add(data, data.ip);
+    request.onsuccess = function(e) {
+      console.log("Add successful " + JSON.stringify(data));
+    }
+    request.onfailuer = function(e) {
+      console.log("Add failed " + JSON.stringify(data));
+    }
+
   }
-  function geoipCallbackDestination(data) {
-    console.log("geoipCallbackDestination data from telize.com: " + JSON.stringify(data));
-    createMarker(data, 'destination');
-    localStorage.setItem(data.ip, JSON.stringify(data));
-  }
-  function geoipCallbackDeny(data) {
-    console.log("geoipCallbackDeny data from telize.com: " + JSON.stringify(data));
-    createMarker(data, 'deny');
-    localStorage.setItem(data.ip, JSON.stringify(data));
-  }
-  function geoip(ip, direction) {
+  function getGeo(ip, direction) {
     if (excludeIpRegex.test(ip)) {
       console.log("Exclude IP: '" + ip + "'");
       return;
     }
-    var data = localStorage.getItem(ip);
-    if (data==null) {
-      console.log("Requesting geo from telize.com for IP: '" + ip + "'");
-      var script = document.createElement('script');
-      if (direction == 'source') {
-        script.src = 'http://www.telize.com/geoip/'+ip+'?callback=geoipCallbackSource';
+    var transaction = db.transaction(["geo"],"readonly");
+    var store = transaction.objectStore("geo");
+    var index = store.index("geoIndex");
+    var request = index.get(ip);
+    request.onsuccess = function(e) {
+      console.log("get successful " + ip);
+      if (request.result) {
+        console.log("From db: " + JSON.stringify(request.result));
+        createMarker(request.result, direction);
+      } else {
+        console.log("Requesting geo from telize.com for IP: '" + ip + "'");
+        var script = document.createElement('script');
+        if (direction == 'source') {
+          script.src = 'http://www.telize.com/geoip/'+ip+'?callback=geoipCallbackSource';
+        }
+        if (direction == 'destination') {
+          script.src = 'http://www.telize.com/geoip/'+ip+'?callback=geoipCallbackDestination';
+        }
+        if (direction == 'deny') {
+          script.src = 'http://www.telize.com/geoip/'+ip+'?callback=geoipCallbackDeny';
+        }
+        document.head.appendChild(script);
       }
-      if (direction == 'destination') {
-        script.src = 'http://www.telize.com/geoip/'+ip+'?callback=geoipCallbackDestination';
-      }
-      if (direction == 'deny') {
-        script.src = 'http://www.telize.com/geoip/'+ip+'?callback=geoipCallbackDeny';
-      }
-      document.head.appendChild(script);
-    } else {
-      data = JSON.parse(data);
-      console.log("Geo data found in local storage for IP: '" + ip  + "' JSON:" + JSON.stringify(data));
-      createMarker(data, direction);
     }
+    request.onfailure = function(e) {
+      console.log("get failed " + ip);
+    }
+  }
+
+  function geoipCallbackSource(data) {
+    console.log("geoipCallbackSource data from telize.com:" + JSON.stringify(data));
+    createMarker(data, 'source');
+    storeGeo(data);
+  }
+  function geoipCallbackDestination(data) {
+    console.log("geoipCallbackDestination data from telize.com: " + JSON.stringify(data));
+    createMarker(data, 'destination');
+    storeGeo(data);
+  }
+  function geoipCallbackDeny(data) {
+    console.log("geoipCallbackDeny data from telize.com: " + JSON.stringify(data));
+    createMarker(data, 'deny');
+    storeGeo(data);
   }
 
   ws.onopen = function() {
